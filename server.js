@@ -89,8 +89,8 @@ function broadcast(event, data) {
 }
 
 
-router.get('/image/:seq/:filename', function(req, res){
-  var imagePath = __dirname+'/image/'+req.params.seq+'/'+req.params.filename;
+router.get('/resources/:separation/:directory/:seq/:filename', function(req, res){
+  var imagePath = __dirname+'/resources/'+req.params.separation+'/'+req.params.directory+'/'+req.params.seq+'/'+req.params.filename;
   console.log(imagePath);
   fs.readFile(imagePath, function(error, data){
     if(error != null){
@@ -99,30 +99,44 @@ router.get('/image/:seq/:filename', function(req, res){
     }else{
       var imgNameArray = req.params.filename.split('.');
       var ext = imgNameArray[1];
-      res.writeHead(200, {'Content-Type': 'image/'+ext});
+      res.writeHead(200, {'Content-Type': req.params.separation+'/'+ext});
       res.end(data);
     }
   });
 });
-router.post('/upload/image/:seq', function(req, res){
+router.post('/upload/resources/image/court/:seq', function(req, res){
   req.accepts('application/json');
   var seq = req.params.seq;
 
   try{
 
-    var directoryPath = __dirname+'/image/'+seq+'/';
 
-    var folderCheck = false;
-    try{
-      folderCheck = fs.lstatSync(directoryPath).isDirectory();
-    }catch(ee){
-      folderCheck = false;
+
+    function existsFolder(url){
+      var folderCheck = false;
+      try{
+        folderCheck = fs.lstatSync(url).isDirectory();
+      }catch(ee){
+        folderCheck = false;
+      }
+      if(!folderCheck){
+        fs.mkdir(url, function(err) {
+          if(err) throw err;
+        });
+      }
     }
-    if(!folderCheck){
-      fs.mkdir(directoryPath, function(err) {
-        if(err) throw err;
-      });
-    }
+
+    var resourcesPath = __dirname+'/resources/';
+    existsFolder(resourcesPath);
+
+    var imagePath = resourcesPath+'image/';
+    existsFolder(imagePath);
+
+    var courtPath = imagePath+'court/';
+    existsFolder(courtPath);
+
+    var directoryPath = courtPath+seq+'/';
+    existsFolder(directoryPath);
 
     var pic1 = req.files.pic1;
     var pic2 = req.files.pic2;
