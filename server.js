@@ -120,7 +120,7 @@ router.post('/upload/:projectPath/:resources/:separation/:directory/:seq', funct
   var separationPath = req.param.separation;
   var directoryPath = req.param.directory;
   var seqPath = req.param.seq;
-
+  console.log(projectPath);
   try{
     function existsFolder(url){
       var folderCheck = false;
