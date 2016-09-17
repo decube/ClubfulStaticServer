@@ -113,14 +113,14 @@ router.get('/:project/:resources/:separation/:directory/:seq/:filename', functio
 
 
 
-router.post('/upload/:projectPath/:resources/:separation/:directory/:seq', function(req, res){
+router.post('/upload/:project/:resources/:separation/:directory/:seq', function(req, res){
   req.accepts('application/json');
   var projectPath = req.param.project;
   var resourcesPath = req.param.resources;
   var separationPath = req.param.separation;
   var directoryPath = req.param.directory;
   var seqPath = req.param.seq;
-  console.log(projectPath);
+  
   try{
     function existsFolder(url){
       var folderCheck = false;
