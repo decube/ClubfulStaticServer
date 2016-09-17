@@ -89,8 +89,14 @@ function broadcast(event, data) {
 }
 
 
-router.get('/resources/:separation/:directory/:seq/:filename', function(req, res){
-  var imagePath = __dirname+'/resources/'+req.params.separation+'/'+req.params.directory+'/'+req.params.seq+'/'+req.params.filename;
+router.get('/:project/:resources/:separation/:directory/:seq/:filename', function(req, res){
+  var projectPath = req.param.project;
+  var resourcesPath = req.param.resources;
+  var separationPath = req.param.separation;
+  var directoryPath = req.param.directory;
+  var seqPath = req.param.seq;
+
+  var imagePath = __dirname+'/'+projectPath+'/'+resourcesPath+'/'+separationPath+'/'+directoryPath+'/'+seqPath+'/'+req.params.filename;
   console.log(imagePath);
   fs.readFile(imagePath, function(error, data){
     if(error != null){
@@ -104,14 +110,18 @@ router.get('/resources/:separation/:directory/:seq/:filename', function(req, res
     }
   });
 });
-router.post('/upload/resources/image/court/:seq', function(req, res){
+
+
+
+router.post('/upload/:projectPath/:resources/:separation/:directory/:seq', function(req, res){
   req.accepts('application/json');
-  var seq = req.params.seq;
+  var projectPath = req.param.project;
+  var resourcesPath = req.param.resources;
+  var separationPath = req.param.separation;
+  var directoryPath = req.param.directory;
+  var seqPath = req.param.seq;
 
   try{
-
-
-
     function existsFolder(url){
       var folderCheck = false;
       try{
@@ -126,54 +136,41 @@ router.post('/upload/resources/image/court/:seq', function(req, res){
       }
     }
 
-    var resourcesPath = __dirname+'/resources/';
-    existsFolder(resourcesPath);
+    var path = __dirname;
 
-    var imagePath = resourcesPath+'image/';
-    existsFolder(imagePath);
+    path = path+'/'+projectPath+'/';
+    existsFolder(path);
 
-    var courtPath = imagePath+'court/';
-    existsFolder(courtPath);
+    path = path+'/'+resourcesPath+'/';
+    existsFolder(path);
 
-    var directoryPath = courtPath+seq+'/';
-    existsFolder(directoryPath);
+    path = path+'/'+separationPath+'/';
+    existsFolder(path);
 
-    var pic1 = req.files.pic1;
-    var pic2 = req.files.pic2;
-    var pic3 = req.files.pic3;
-    var pic4 = req.files.pic4;
+    path = path+'/'+directoryPath+'/';
+    existsFolder(path);
 
-    if(pic1 != undefined && pic1.size != 0){
-      fs.readFile(pic1.path, function (err, data) {
-        var picName = pic1.name;
-        var picPath = directoryPath+picName;
-        fs.writeFile(picPath, data, function (err) {});
-      });
+    path = path+'/'+seqPath+'/';
+    existsFolder(path);
+
+    function picSave(pic){
+      if(pic != undefined && pic.size != 0){
+        fs.readFile(pic.path, function (err, data) {
+          var picName = pic.name;
+          var picPath = path+picName;
+          fs.writeFile(picPath, data, function (err) {});
+        });
+      }
     }
 
-    if(pic2 != undefined && pic2.size != 0){
-      fs.readFile(pic2.path, function (err, data) {
-        var picName = pic2.name;
-        var picPath = directoryPath+picName;
-        fs.writeFile(picPath, data, function (err) {});
-      });
-    }
-
-    if(pic3 != undefined && pic3.size != 0){
-      fs.readFile(pic3.path, function (err, data) {
-        var picName = pic3.name;
-        var picPath = directoryPath+picName;
-        fs.writeFile(picPath, data, function (err) {});
-      });
-    }
-
-    if(pic4 != undefined && pic4.size != 0){
-      fs.readFile(pic4.path, function (err, data) {
-        var picName = pic4.name;
-        var picPath = directoryPath+picName;
-        fs.writeFile(picPath, data, function (err) {});
-      });
-    }
+    picSave(req.files.pic1);
+    picSave(req.files.pic2);
+    picSave(req.files.pic3);
+    picSave(req.files.pic4);
+    picSave(req.files.pic5);
+    picSave(req.files.pic6);
+    picSave(req.files.pic7);
+    picSave(req.files.pic8);
 
     res.json({
       code:0,
