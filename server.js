@@ -90,11 +90,11 @@ function broadcast(event, data) {
 
 
 router.get('/:project/:resources/:separation/:directory/:seq/:filename', function(req, res){
-  var projectPath = req.param.project;
-  var resourcesPath = req.param.resources;
-  var separationPath = req.param.separation;
-  var directoryPath = req.param.directory;
-  var seqPath = req.param.seq;
+  var projectPath = req.params.project;
+  var resourcesPath = req.params.resources;
+  var separationPath = req.params.separation;
+  var directoryPath = req.params.directory;
+  var seqPath = req.params.seq;
 
   var imagePath = __dirname+'/'+projectPath+'/'+resourcesPath+'/'+separationPath+'/'+directoryPath+'/'+seqPath+'/'+req.params.filename;
   console.log(imagePath);
@@ -115,12 +115,12 @@ router.get('/:project/:resources/:separation/:directory/:seq/:filename', functio
 
 router.post('/upload/:project/:resources/:separation/:directory/:seq', function(req, res){
   req.accepts('application/json');
-  var projectPath = req.param.project;
-  var resourcesPath = req.param.resources;
-  var separationPath = req.param.separation;
-  var directoryPath = req.param.directory;
-  var seqPath = req.param.seq;
-  
+  var projectPath = req.params.project;
+  var resourcesPath = req.params.resources;
+  var separationPath = req.params.separation;
+  var directoryPath = req.params.directory;
+  var seqPath = req.params.seq;
+
   try{
     function existsFolder(url){
       var folderCheck = false;
