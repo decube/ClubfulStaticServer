@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+	<title>push</title>
+  <script src="http://code.jquery.com/jquery.min.js"></script>
+</head>
+<body>
+	<input type="text" id="title1" value="Clubful 알림"/>
+	<input type="text" id="body1" value="같이 운동하실래요?"/>
+	<br />
+	<button onclick="push1()">처음 호출 푸시 전송</button>
+	<br /><br />
+	<input type="text" id="title2" value="Clubful 알림"/>
+	<input type="text" id="body2" value="해당 코트에 대해 승낙이 왔습니다."/>
+	<br />
+	<button onclick="push2()">승낙했을때 푸시</button>
+	<br /><br />
+	<div id="result">
+
+	</div>
+	<script>
+	function getDate(){
+		var dt = new Date();
+		var sec = String(dt.getSeconds());
+		var min = String(dt.getMinutes());
+		var hour = String(dt.getHours());
+		var day = String(dt.getDate());
+		var month = String(dt.getMonth()+1);
+		var year = String(dt.getFullYear());
+		if(sec.length < 2){
+			sec = "0"+sec;
+		}
+		if(min.length < 2){
+			min = "0"+min;
+		}
+		if(hour.length < 2){
+			hour = "0"+hour;
+		}
+		if(day.length < 2){
+			day = "0"+day;
+		}
+		if(month.length < 2){
+			month = "0"+month;
+		}
+		var date = year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec;
+		return date;
+	}
+	function push1(){
+		var data = {
+			"type":"call",
+			"seq":1,
+			"memberSeq":1,
+			"date":getDate()
+		};
+		push($('#title1').val(), $('#body1').val(), data);
+	}
+	function push2(){
+		var data = {
+			"type":"accept",
+			"seq":1,
+			"memberSeq":2,
+			"date":getDate()
+		};
+		push($('#title2').val(), $('#body2').val(), data);
+	}
+	function push(title, body, data){
+		var pushData = {
+			"to":"dqDQcUNFQwA:APA91bEkgr4F6ovMMAefQ-ngwgHinzz6TUBaU-PRsZih4pGqI9nP-NpX6mVAJUanpFDDvotSOIYI9oxeFRqNfiQi7NwN4h86cjBDltglgMtxDLsKlrAjlZmdGJ8CiYSDNzby0yHRJ6PH",
+			"priority":"high",
+			"notification":{
+				"title":title,
+				"body":body,
+				"icon":"myicon",
+				"content_available":true
+			},
+			"data":data
+		};
+		$.ajax({
+			type:"POST",
+			url:"https://fcm.googleapis.com/fcm/send",
+			async:true,
+			headers: {
+		    "Authorization": "key=AIzaSyAsuuJODjbRebPaMeXKM0UmZ9h8tVmPkXk",
+			  "Content-Type": "application/json",
+		  },
+			data:JSON.stringify(pushData),
+			success:function(data){
+				$('#result').html(JSON.stringify(data));
+			},error:function(jqXHR,textStatus,errorThrown){
+				$('#result').html('err:'+JSON.stringify(jqXHR)+'\r\n'+JSON.stringify(textStatus)+'\r\n'+JSON.stringify(errorThrown));
+			}
+		});
+	}
+	</script>
+</body>
+</html>
