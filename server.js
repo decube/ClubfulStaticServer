@@ -7,21 +7,18 @@ var http = require('http');
 var path = require('path');
 
 var async = require('async');
-var socketio = require('socket.io');
 var express = require('express');
 var fs = require('fs');
 
-//
-// ## SimpleServer `SimpleServer(obj)`
-//
-// Creates a new instance of SimpleServer with the following options:
-//  * `port` - The HTTP port to listen on. If `process.env.PORT` is set, _it overrides this value_.
-//
+
+
+//image resize
+var im = require('imagemagick');
+
+
+
 var router = express();
 var server = http.createServer(router);
-var io = socketio.listen(server);
-
-
 router.use(express.logger('dev'));
 router.use(express.json());
 router.use(express.urlencoded());
@@ -29,64 +26,7 @@ router.use(express.bodyParser());
 router.use(express.methodOverride());
 router.use(express.cookieParser('your secret here'));
 router.use(express.session());
-
 router.use(express.static(path.resolve(__dirname, 'client')));
-var messages = [];
-var sockets = [];
-
-io.on('connection', function (socket) {
-    messages.forEach(function (data) {
-      socket.emit('message', data);
-    });
-
-    sockets.push(socket);
-
-    socket.on('disconnect', function () {
-      sockets.splice(sockets.indexOf(socket), 1);
-      updateRoster();
-    });
-
-    socket.on('message', function (msg) {
-      var text = String(msg || '');
-
-      if (!text)
-        return;
-
-      socket.get('name', function (err, name) {
-        var data = {
-          name: name,
-          text: text
-        };
-
-        broadcast('message', data);
-        messages.push(data);
-      });
-    });
-
-    socket.on('identify', function (name) {
-      socket.set('name', String(name || 'Anonymous'), function (err) {
-        updateRoster();
-      });
-    });
-  });
-
-function updateRoster() {
-  async.map(
-    sockets,
-    function (socket, callback) {
-      socket.get('name', callback);
-    },
-    function (err, names) {
-      broadcast('roster', names);
-    }
-  );
-}
-
-function broadcast(event, data) {
-  sockets.forEach(function (socket) {
-    socket.emit(event, data);
-  });
-}
 
 
 router.get('/:project/:resources/:separation/:directory/:seq/:filename', function(req, res){
@@ -138,16 +78,16 @@ router.post('/upload/:project/:resources/:separation/:directory/:seq', function(
 
     var path = __dirname;
 
-    path = path+'/'+projectPath+'/';
+    path = path+'/'+projectPath;
     existsFolder(path);
 
-    path = path+'/'+resourcesPath+'/';
+    path = path+'/'+resourcesPath;
     existsFolder(path);
 
-    path = path+'/'+separationPath+'/';
+    path = path+'/'+separationPath;
     existsFolder(path);
 
-    path = path+'/'+directoryPath+'/';
+    path = path+'/'+directoryPath;
     existsFolder(path);
 
     path = path+'/'+seqPath+'/';
@@ -157,8 +97,36 @@ router.post('/upload/:project/:resources/:separation/:directory/:seq', function(
       if(pic != undefined && pic.size != 0){
         fs.readFile(pic.path, function (err, data) {
           var picName = pic.name;
+          var originName = ""
+          var nameArray = picName.split('.');
+          var dot = nameArray[nameArray.length-1]
+          for(var i=0; i<nameArray.length; i++){
+            if(nameArray[i] != dot){
+              originName += nameArray[i];
+            }
+          }
+          originName += "_origin."+dot;
+
           var picPath = path+picName;
-          fs.writeFile(picPath, data, function (err) {});
+          var originPath = path+originName;
+
+          fs.writeFile(originPath, data, function (err) {});
+
+          function saveImageResize(width, height){
+            im.resize({
+              srcPath: originPath,
+              dstPath: picPath,
+              width: width,
+              height: height
+            }, function(error, stdout, stderror) {
+            });
+            fs.readFile(picPath, function (err, data) {
+              if(data.length > 1024*50){
+                saveImageResize(width-30, (width-30)/5*3);
+              }
+            });
+          }
+          saveImageResize(500, 300);
         });
       }
     }
