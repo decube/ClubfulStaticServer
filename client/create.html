@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <title>코트등록</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
+    <style>
+      #mapView{width: 100%; height: 500px; background-color: white; z-index: 500; position: absolute; top: 0; left: 0;}
+      #locationContent{width: 100%; height: 300px;}
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyC6zakBdFyHpyC4ktAVmvmmcLB91TsF9oY&sensor=true"></script>
+    <script type="text/javascript" src="/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/js/common.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+    <div>
+      <div class="form-group">
+        <label for="file1">코트이미지1</label>
+        <input type="file" id="file1">
+      </div>
+      <div class="form-group">
+        <label for="file2">코트이미지2</label>
+        <input type="file" id="file2">
+      </div>
+      <div class="form-group">
+        <label for="file3">코트이미지3</label>
+        <input type="file" id="file3">
+      </div>
+      <div class="form-group">
+        <label for="file4">코트이미지4</label>
+        <input type="file" id="file4">
+      </div>
+      <br />
+      <br />
+      <button type='button' id="loca">위치</button>
+      <div id="category">
+
+      </div>
+      <div class="form-group">
+        <label for="cname">코트별칭</label>
+        <input type="text" class="form-control" id="cname" placeholder="코트별칭">
+      </div>
+      <div>
+        <span>코트에 대한 설명</span><br />
+        <textarea class="form-control" id="desc" rows="3" placeholder="코트에 대한 설명"></textarea>
+      </div>
+
+      <button id="upload">올리기</button>
+
+
+    </div>
+    <div id="mapView">
+      <input id="searchStr" type="text" placeholder="검색할 위치를 입력하세요.">
+      <button id="searchBtn">검색</button>
+      <button id="searchClose">현재위치저장</button>
+      <br />
+      <div id="locationContent"></div>
+    </div>
+    <script>
+       $(document).ready(function(){
+         var xValue = 0;
+         var yValue = 0;
+         var addressValue = '';
+         var addressShortValue = '';
+
+
+         $.ajax({
+            url: "https://clubfulapiserver-guanho.c9users.io/version/checkWeb.json",
+            dataType: 'jsonp',
+            async:true ,
+            jsonpCallback: 'myCallback',
+            success: function(data) {
+              var str = '';
+              str += '<select id="categoryValue" class="form-control">';
+              var cateArr = data['categoryList'];
+              for(var i=0;i<cateArr.length;i++){
+                str += '<option value='+cateArr[i]['seq']+'>'+cateArr[i]['name']+'</option>';
+              }
+              str += '</select>';
+              $('#category').html(str);
+            },
+            error: function(xhr) {
+              console.log('실패 - ', xhr);
+            }
+          });
+
+          $('#loca').click(function(){
+              $('#mapView').show();
+          });
+          var latlng, geocoder, myOptions, map, marker;
+          $('#searchStr').keydown(function(key){
+        		if(key.keyCode == 13) search();
+        	});
+          $('#searchBtn').click(function(){
+        		search();
+        	});
+          $('#searchClose').click(function(){
+            geocoder.geocode({'latLng':latlng,language:'ko'}, function(results, status){
+        			var locationGeo = results[0].geometry.location;
+        			var x = locationGeo.lat();
+        			var y = locationGeo.lng();
+        			var addArray = results[0].address_components;
+        			var addr;
+        			for(var i=0;i<addArray.length;i++){
+        				if(addArray[i].types[0] == 'sublocality_level_2') addr = addArray[i].long_name;
+        			}
+        			if(addr == '' || typeof addr == 'undefined'){
+        				for(var i=0;i<addArray.length;i++){
+        					if(addArray[i].types[0] == 'sublocality_level_1') addr = addArray[i].long_name;
+        				}
+        			}
+        			if(addr == '' || typeof addr == 'undefined') addr = addArray[2].long_name;
+
+              var address = results[0].formatted_address;
+              var addressShort = addr;
+              xValue = x;
+              yValue = y;
+              addressValue = address;
+              addressShortValue = addressShort;
+              $('#loca').html(addressShort);
+              $('#mapView').hide();
+        		});
+          });
+          function search(){
+        		var address = $('#searchStr').val();
+        		if(address == '') return;
+        		geocoder = new google.maps.Geocoder();
+        		geocoder.geocode({'address':address,language:'ko'}, function(results, status){
+        			if(status == google.maps.GeocoderStatus.OK) {
+        				var location = results[0].geometry.location;
+        				latlng = new google.maps.LatLng(location.lat() , location.lng());
+        				map.setCenter(latlng);
+        				marker.setPosition(map.getCenter());
+        			}
+        		});
+        	}
+
+
+          function initialize(){
+        		latlng = new google.maps.LatLng(37.556838,126.92377399999998);
+        		geocoder = new google.maps.Geocoder();
+        		geocoder.geocode({'latLng':latlng,language:'ko'}, function(results, status){
+        			if(status == google.maps.GeocoderStatus.OK) {
+        				var location = results[0].geometry.location;
+        				latlng = new google.maps.LatLng(location.lat() , location.lng());
+        				myOptions = {
+        						zoom: 16,
+        						center: latlng,
+        						mapTypeId: google.maps.MapTypeId.ROADMAP
+        				};
+        				map = new google.maps.Map(document.getElementById("locationContent"),myOptions);
+        				marker = new google.maps.Marker({
+        					position :  map.getCenter(),
+        					map : map
+        				});
+        				latlng = map.getCenter();
+        				google.maps.event.addListener(map, 'center_changed', function(event) {
+        					marker.setPosition(map.getCenter());
+        					latlng = map.getCenter();
+        			  });
+        			}
+        		});
+        	}
+          initialize();
+          $('#mapView').hide();
+
+
+          var upload = false;
+          $('#upload').click(function(){
+            if(upload == true){
+              return;
+            }
+            upload = true;
+
+            var form = $.createForm('POST');
+            $.createInput(form, 'id', '1');
+            $.createInput(form, 'latitude', xValue);
+            $.createInput(form, 'longitude', yValue);
+            $.createInput(form, 'address', addressValue);
+            $.createInput(form, 'addressShort', addressShortValue);
+            $.createInput(form, 'category', $('#categoryValue').val());
+            $.createInput(form, 'cname', $('#cname').val());
+            $.createInput(form, 'description', $('#desc').val());
+
+
+            var picNameArray = [];
+            var idx = 0;
+            if($('#file1').val() != ''){
+              idx += 1;
+            }
+            if($('#file2').val() != ''){
+              idx += 1;
+            }
+            if($('#file3').val() != ''){
+              idx += 1;
+            }
+            if($('#file4').val() != ''){
+              idx += 1;
+            }
+            for(var z = 0; z<idx; z++){
+              picNameArray.push('pic'+(z+1));
+            }
+            $.createInput(form, 'picNameArray', JSON.stringify(picNameArray));
+            console.log(form);
+            upload = false;
+          });
+
+          $('#mapView').css('height',$.screenHeight());
+       });
+    </script>
+  </body>
+</html>
