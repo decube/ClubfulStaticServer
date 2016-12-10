@@ -94,7 +94,6 @@ router.post('/upload/:project/:directory/:seq', function(req, res){
       if(pic != undefined && pic.size != 0){
         fs.readFile(pic.path, function (err, data) {
 
-
           function saveImageResize(width, height, srcPath, dstPath){
             im.crop({
               srcPath: srcPath,
@@ -126,7 +125,9 @@ router.post('/upload/:project/:directory/:seq', function(req, res){
           var picPath = path+picName;
           var originPath = path+originName;
           fs.writeFile(originPath, data, function (err) {});
-          saveImageResize(500, 300, originPath, picPath);
+          setTimeout(function() {
+            saveImageResize(500, 300, originPath, picPath);
+          }, 10);
         });
       }
     }
