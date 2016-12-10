@@ -16,22 +16,24 @@
     <script type="text/javascript" src="/js/common.js"></script>
     <script type="text/javascript" src="/js/bootstrap.min.js"></script>
     <div>
-      <div class="form-group">
-        <label for="file1">코트이미지1</label>
-        <input type="file" id="file1">
-      </div>
-      <div class="form-group">
-        <label for="file2">코트이미지2</label>
-        <input type="file" id="file2">
-      </div>
-      <div class="form-group">
-        <label for="file3">코트이미지3</label>
-        <input type="file" id="file3">
-      </div>
-      <div class="form-group">
-        <label for="file4">코트이미지4</label>
-        <input type="file" id="file4">
-      </div>
+      <form method="POST" id="form1">
+        <div class="form-group">
+          <label for="pic1">코트이미지1</label>
+          <input type="file" name="pic1" id="pic1">
+        </div>
+        <div class="form-group">
+          <label for="pic2">코트이미지2</label>
+          <input type="file" name="pic2" id="pic2">
+        </div>
+        <div class="form-group">
+          <label for="pic3">코트이미지3</label>
+          <input type="file" name="pic3" id="pic3">
+        </div>
+        <div class="form-group">
+          <label for="pic4">코트이미지4</label>
+          <input type="file" name="pic4" id="pic4">
+        </div>
+      </form>
       <br />
       <br />
       <button type='button' id="loca">위치</button>
@@ -49,7 +51,7 @@
 
       <button id="upload">올리기</button>
 
-
+      <img id="img1" />
     </div>
     <div id="mapView">
       <input id="searchStr" type="text" placeholder="검색할 위치를 입력하세요.">
@@ -65,12 +67,13 @@
          var addressValue = '';
          var addressShortValue = '';
 
-
          $.ajax({
-            url: "https://clubfulapiserver-guanho.c9users.io/version/checkWeb.json",
+            url: "https://clubful-smkim89.c9users.io/version/check",
+            type: 'POST',
+            data: 'appType=web&language=ko',
             dataType: 'jsonp',
             async:true ,
-            jsonpCallback: 'myCallback',
+            jsonpCallback: 'callback',
             success: function(data) {
               var str = '';
               str += '<select id="categoryValue" class="form-control">';
@@ -137,7 +140,6 @@
         		});
         	}
 
-
           function initialize(){
         		latlng = new google.maps.LatLng(37.556838,126.92377399999998);
         		geocoder = new google.maps.Geocoder();
@@ -187,24 +189,69 @@
 
             var picNameArray = [];
             var idx = 0;
-            if($('#file1').val() != ''){
+            if($('#pic1').val() != ''){
               idx += 1;
             }
-            if($('#file2').val() != ''){
+            if($('#pic2').val() != ''){
               idx += 1;
             }
-            if($('#file3').val() != ''){
+            if($('#pic3').val() != ''){
               idx += 1;
             }
-            if($('#file4').val() != ''){
+            if($('#pic4').val() != ''){
               idx += 1;
             }
             for(var z = 0; z<idx; z++){
               picNameArray.push('pic'+(z+1));
             }
             $.createInput(form, 'picNameArray', JSON.stringify(picNameArray));
-            console.log(form);
+
+
+
+
+            // if($('#pic1').val() == ''){
+            //   alert('1번 사진에 이미지 올려주세요');
+            //   upload = false;
+            //   return;
+            // }
+            // if($('#pic2').val() == ''){
+            //   alert('2번 사진에 이미지 올려주세요');
+            //   upload = false;
+            //   return;
+            // }
+            // if($('#pic3').val() == ''){
+            //   if($('#pic4').val() != ''){
+            //     alert('3번 사진에 이미지 올려주세요');
+            //     upload = false;
+            //     return;
+            //   }
+            // }
+
+
+
             upload = false;
+
+
+
+
+
+
+            var form1 = document.getElementById('form1');
+            var formData = new FormData(form1);
+            $.ajax({
+              type:'POST',
+              url:'/upload/clubful/court/1?isType=web',
+              data:formData,
+              processData:false,
+              contentType:false,
+              dataType:"json",
+              async:true,
+              success:function(data){
+                console.log('성공!');
+              },error:function(jqXHR,textStatus,errorThrown){
+                jQuery.ajaxError(jqXHR,textStatus,errorThrown);
+              }
+            });
           });
 
           $('#mapView').css('height',$.screenHeight());

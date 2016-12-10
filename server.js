@@ -29,14 +29,12 @@ router.use(express.session());
 router.use(express.static(path.resolve(__dirname, 'client')));
 
 
-router.get('/:project/:resources/:separation/:directory/:seq/:filename', function(req, res){
+router.get('/download/:project/:directory/:seq/:filename', function(req, res){
   var projectPath = req.params.project;
-  var resourcesPath = req.params.resources;
-  var separationPath = req.params.separation;
   var directoryPath = req.params.directory;
   var seqPath = req.params.seq;
 
-  var imagePath = __dirname+'/'+projectPath+'/'+resourcesPath+'/'+separationPath+'/'+directoryPath+'/'+seqPath+'/'+req.params.filename;
+  var imagePath = __dirname+'/'+projectPath+'/'+directoryPath+'/'+seqPath+'/'+req.params.filename;
   console.log(imagePath);
   fs.readFile(imagePath, function(error, data){
     if(error != null){
@@ -45,19 +43,16 @@ router.get('/:project/:resources/:separation/:directory/:seq/:filename', functio
     }else{
       var imgNameArray = req.params.filename.split('.');
       var ext = imgNameArray[1];
-      res.writeHead(200, {'Content-Type': req.params.separation+'/'+ext});
+      res.writeHead(200, {'Content-Type': 'image/'+ext});
       res.end(data);
     }
   });
 });
 
 
-
-router.post('/upload/:project/:resources/:separation/:directory/:seq', function(req, res){
+router.post('/upload/:project/:directory/:seq', function(req, res){
   req.accepts('application/json');
   var projectPath = req.params.project;
-  var resourcesPath = req.params.resources;
-  var separationPath = req.params.separation;
   var directoryPath = req.params.directory;
   var seqPath = req.params.seq;
 
@@ -81,23 +76,43 @@ router.post('/upload/:project/:resources/:separation/:directory/:seq', function(
     path = path+'/'+projectPath;
     existsFolder(path);
 
-    path = path+'/'+resourcesPath;
-    existsFolder(path);
-
-    path = path+'/'+separationPath;
-    existsFolder(path);
-
     path = path+'/'+directoryPath;
     existsFolder(path);
 
     path = path+'/'+seqPath+'/';
     existsFolder(path);
 
+
+
+
+
+
+
+
+
     function picSave(pic){
       if(pic != undefined && pic.size != 0){
         fs.readFile(pic.path, function (err, data) {
+          function saveImageResize(width, height, originPath, dstPt){
+            im.crop({
+              srcPath: originPath,
+              dstPath: dstPt,
+              width: width,
+              height: height
+            }, function(error, stdout, stderror) {
+
+            });
+            setTimeout(function() {
+              fs.readFile(picPath, function (err, data) {
+                if(data != null && data.length != null && data.length != undefined && data.length > 1024*50){
+                  saveImageResize(width-30, (width-30)/5*3, dstPt, dstPt);
+                }
+              });
+            }, 1);
+          }
+
           var picName = pic.name;
-          var originName = ""
+          var originName = '';
           var nameArray = picName.split('.');
           var dot = nameArray[nameArray.length-1]
           for(var i=0; i<nameArray.length; i++){
@@ -106,39 +121,88 @@ router.post('/upload/:project/:resources/:separation/:directory/:seq', function(
             }
           }
           originName += "_origin."+dot;
-
           var picPath = path+picName;
           var originPath = path+originName;
-
           fs.writeFile(originPath, data, function (err) {});
-
-          function saveImageResize(width, height){
-            im.resize({
-              srcPath: originPath,
-              dstPath: picPath,
-              width: width,
-              height: height
-            }, function(error, stdout, stderror) {
-            });
-            fs.readFile(picPath, function (err, data) {
-              if(data.length > 1024*50){
-                saveImageResize(width-30, (width-30)/5*3);
-              }
-            });
-          }
-          saveImageResize(500, 300);
+          saveImageResize(500, 300, originPath, picPath);
         });
       }
     }
 
-    picSave(req.files.pic1);
-    picSave(req.files.pic2);
-    picSave(req.files.pic3);
-    picSave(req.files.pic4);
-    picSave(req.files.pic5);
-    picSave(req.files.pic6);
-    picSave(req.files.pic7);
-    picSave(req.files.pic8);
+
+
+    function picSaveWeb(pic, picName){
+      if(pic != undefined && pic.size != 0){
+        fs.readFile(pic.path, function (err, data) {
+          function saveImageResize(width, height, originPath, dstPt){
+            im.crop({
+              srcPath: originPath,
+              dstPath: dstPt,
+              width: width,
+              height: height
+            }, function(error, stdout, stderror) {
+
+            });
+            setTimeout(function() {
+              fs.readFile(picPath, function (err, data) {
+                if(data != null && data.length != null && data.length != undefined && data.length > 1024*50){
+                  saveImageResize(width-30, (width-30)/5*3, dstPt, dstPt);
+                }
+              });
+            }, 1);
+          }
+
+
+          var originName = '';
+          var nameArray = picName.split('.');
+          var dot = nameArray[nameArray.length-1]
+          for(var i=0; i<nameArray.length; i++){
+            if(nameArray[i] != dot){
+              originName += nameArray[i];
+            }
+          }
+          originName += "_origin."+dot;
+          var picPath = path+picName;
+          var originPath = path+originName;
+          fs.writeFile(originPath, data, function (err) {});
+
+          setTimeout(function() {
+            im.crop({
+              srcPath: originPath,
+              dstPath: originPath,
+              width: 1000,
+              height: 500
+            }, function(error, stdout, stderror) {
+            });
+            setTimeout(function() {
+              saveImageResize(500, 300, originPath, picPath);
+            }, 1);
+          }, 1);
+        });
+      }
+    }
+
+
+    if(req.param('isType') == 'web'){
+      picSaveWeb(req.files.pic1, 'pic1.jpeg');
+      picSaveWeb(req.files.pic2, 'pic2.jpeg');
+      picSaveWeb(req.files.pic3, 'pic3.jpeg');
+      picSaveWeb(req.files.pic4, 'pic4.jpeg');
+      picSaveWeb(req.files.pic5, 'pic5.jpeg');
+      picSaveWeb(req.files.pic6, 'pic6.jpeg');
+      picSaveWeb(req.files.pic7, 'pic7.jpeg');
+      picSaveWeb(req.files.pic8, 'pic8.jpeg');
+    }else{
+      picSave(req.files.pic1);
+      picSave(req.files.pic2);
+      picSave(req.files.pic3);
+      picSave(req.files.pic4);
+      picSave(req.files.pic5);
+      picSave(req.files.pic6);
+      picSave(req.files.pic7);
+      picSave(req.files.pic8);
+    }
+
 
     res.json({
       code:0,
