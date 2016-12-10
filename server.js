@@ -93,22 +93,24 @@ router.post('/upload/:project/:directory/:seq', function(req, res){
     function picSave(pic){
       if(pic != undefined && pic.size != 0){
         fs.readFile(pic.path, function (err, data) {
-          function saveImageResize(width, height, originPath, dstPt){
+
+
+          function saveImageResize(width, height, srcPath, dstPath){
             im.crop({
-              srcPath: originPath,
-              dstPath: dstPt,
+              srcPath: srcPath,
+              dstPath: dstPath,
               width: width,
               height: height
             }, function(error, stdout, stderror) {
 
             });
             setTimeout(function() {
-              fs.readFile(picPath, function (err, data) {
+              fs.readFile(dstPath, function (err, data) {
                 if(data != null && data.length != null && data.length != undefined && data.length > 1024*50){
-                  saveImageResize(width-30, (width-30)/5*3, dstPt, dstPt);
+                  saveImageResize(width-30, (width-30)/5*3, dstPath, dstPath);
                 }
               });
-            }, 1);
+            }, 10);
           }
 
           var picName = pic.name;
