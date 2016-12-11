@@ -209,23 +209,23 @@
 
 
 
-            // if($('#pic1').val() == ''){
-            //   alert('1번 사진에 이미지 올려주세요');
-            //   upload = false;
-            //   return;
-            // }
-            // if($('#pic2').val() == ''){
-            //   alert('2번 사진에 이미지 올려주세요');
-            //   upload = false;
-            //   return;
-            // }
-            // if($('#pic3').val() == ''){
-            //   if($('#pic4').val() != ''){
-            //     alert('3번 사진에 이미지 올려주세요');
-            //     upload = false;
-            //     return;
-            //   }
-            // }
+            if($('#pic1').val() == ''){
+              alert('1번 사진에 이미지 올려주세요');
+              upload = false;
+              return;
+            }
+            if($('#pic2').val() == ''){
+              alert('2번 사진에 이미지 올려주세요');
+              upload = false;
+              return;
+            }
+            if($('#pic3').val() == ''){
+              if($('#pic4').val() != ''){
+                alert('3번 사진에 이미지 올려주세요');
+                upload = false;
+                return;
+              }
+            }
 
 
 
